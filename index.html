@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Orçamentos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --cyan: #00C8E0;
+    --cyan-dark: #0099B0;
+    --bg: #0A0F1A;
+    --surface: #111827;
+    --surface2: #1A2236;
+    --surface3: #232f47;
+    --border: #1E2D45;
+    --text: #E8F0FE;
+    --text-muted: #6B7FA3;
+    --text-dim: #3D5278;
+    --green: #22C55E;
+    --yellow: #EAB308;
+    --red: #EF4444;
+    --orange: #F97316;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--cyan);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--text); font-weight: 400; font-size: 0.85rem; margin-left: 10px; opacity: 0.5; }
+
+  nav { display: flex; gap: 4px; }
+  nav button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  nav button:hover { background: var(--surface2); color: var(--text); }
+  nav button.active { background: var(--surface3); color: var(--cyan); }
+
+  /* LAYOUT */
+  .app { display: flex; flex: 1; }
+  .sidebar {
+    width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+  .sidebar-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0.5rem 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: all 0.15s;
+  }
+  .sidebar-btn:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-btn.active { background: rgba(0,200,224,0.1); color: var(--cyan); }
+  .sidebar-btn .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+  /* MAIN */
+  main { flex: 1; padding: 2rem; overflow-y: auto; }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* PAGE TITLE */
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  .page-sub { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+  /* CARDS */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+  }
+  .card-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+  .card-value { font-family: 'Syne', sans-serif; font-size: 1.75rem; font-weight: 700; color: var(--cyan); }
+  .card-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+  /* FORMS */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .form-card h3 { font-family: 'Syne', sans-serif; font-size: 1rem; margin-bottom: 1rem; color: var(--text); }
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+  .form-group label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-group input, .form-group select, .form-group textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    padding: 0.6rem 0.75rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--cyan);
+  }
+  .form-group select option { background: var(--surface2); }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.25rem;
+    border-radius: 8px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: var(--cyan); color: #000; }
+  .btn-primary:hover { background: var(--cyan-dark); }
+  .btn-ghost { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+  .btn-danger { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--red); }
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+  .btn-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
+  .btn-success:hover { background: rgba(34,197,94,0.2); }
+  .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .table-header h3 { font-family: 'Syne', sans-serif; font-size: 0.95rem; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--surface2);
+    padding: 0.6rem 1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* BADGE */
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 99px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .badge-green { background: rgba(34,197,94,0.15); color: var(--green); }
+  .badge-yellow { background: rgba(234,179,8,0.15); color: var(--yellow); }
+  .badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+  .badge-blue { background: rgba(0,200,224,0.15); color: var(--cyan); }
+
+  /* DIVIDER */
+  .section-divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+  /* LINE ITEMS */
+  .line-items { margin-top: 1rem; }
+  .line-item-row {
+    display: grid;
+    grid-template-columns: 2fr 3fr 80px 90px 80px 90px 32px;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .line-item-row input, .line-item-row select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    padding: 0.45rem 0.6rem;
+    outline: none;
+    width: 100%;
+  }
+  .line-item-row input:focus { border-color: var(--cyan); }
+  .remove-line { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1rem; transition: color 0.15s; }
+  .remove-line:hover { color: var(--red); }
+  .line-header {
+    display: grid;
+    grid-template-columns: 2fr 3fr 80px 90px 80px 90px 32px;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+    padding: 0 0.1rem;
+  }
+  .line-header span { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* TOTALS BLOCK */
+  .totals-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    max-width: 340px;
+    margin-left: auto;
+    margin-top: 1rem;
+  }
+  .totals-row { display: flex; justify-content: space-between; padding: 0.3rem 0; font-size: 0.85rem; color: var(--text-muted); }
+  .totals-row.total { border-top: 1px solid var(--border); margin-top: 0.25rem; padding-top: 0.6rem; font-weight: 600; color: var(--text); font-size: 1rem; }
+  .totals-row.total span:last-child { color: var(--cyan); font-family: 'Syne', sans-serif; font-size: 1.1rem; }
+
+  /* EMAIL TEMPLATE */
+  .email-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-wrap;
+    font-family: 'DM Sans', sans-serif;
+    cursor: text;
+  }
+  .template-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .tpl-tab {
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tpl-tab:hover { border-color: var(--cyan); color: var(--cyan); }
+  .tpl-tab.active { background: rgba(0,200,224,0.1); border-color: var(--cyan); color: var(--cyan); }
+
+  /* PRICE TABLE */
+  .cat-header {
+    background: var(--surface3);
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+  }
+  .upload-zone:hover { border-color: var(--cyan); background: rgba(0,200,224,0.04); }
+  .upload-zone .upload-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .upload-zone p { color: var(--text-muted); font-size: 0.875rem; }
+  .upload-zone p strong { color: var(--cyan); }
+
+  /* SUMMARY TOTALS */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  .summary-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .summary-item label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
+  .summary-item span { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+
+  /* TOAST */
+  #toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    display: none;
+    z-index: 999;
+    animation: fadeIn 0.2s;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* PRODUCT TABLE GRID */
+  .product-search { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+  .product-search input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    padding: 0.6rem 0.75rem;
+    outline: none;
+  }
+  .product-search input:focus { border-color: var(--cyan); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 1.25rem; }
+  .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+
+  input[type=file] { display: none; }
+
+  .flex-row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .line-item-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">macuti <span>ar condicionado & ventilação</span></div>
+  <nav>
+    <button class="active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button onclick="switchTab('orcamento')">Novo Orçamento</button>
+    <button onclick="switchTab('tabelas')">Tabelas de Preços</button>
+    <button onclick="switchTab('email')">Templates Email</button>
+  </nav>
+</header>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-label">Orçamentos</div>
+    <button class="sidebar-btn active" onclick="switchPanel('dashboard')"><span class="icon">📊</span> Dashboard</button>
+    <button class="sidebar-btn" onclick="switchPanel('orcamento')"><span class="icon">➕</span> Novo Orçamento</button>
+    <button class="sidebar-btn" onclick="switchPanel('lista')"><span class="icon">📋</span> Todos os Orçamentos</button>
+    <div class="sidebar-label">Configurações</div>
+    <button class="sidebar-btn" onclick="switchPanel('tabelas')"><span class="icon">🏷️</span> Tabelas de Preços</button>
+    <button class="sidebar-btn" onclick="switchPanel('produtos')"><span class="icon">❄️</span> Produtos / Máquinas</button>
+    <button class="sidebar-btn" onclick="switchPanel('email')"><span class="icon">✉️</span> Templates Email</button>
+    <button class="sidebar-btn" onclick="switchPanel('import')"><span class="icon">📥</span> Importar Excel</button>
+  </aside>
+
+  <main>
+
+    <!-- DASHBOARD -->
+    <div id="panel-dashboard" class="panel active">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Resumo dos orçamentos e atividade recente</div>
+      <div class="cards">
+        <div class="card">
+          <div class="card-label">Total Orçamentos</div>
+          <div class="card-value" id="stat-total">0</div>
+          <div class="card-sub">orçamentos criados</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Valor Total (sem IVA)</div>
+          <div class="card-value" id="stat-valor">€0</div>
+          <div class="card-sub">soma de todos os orçamentos</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Pendentes</div>
+          <div class="card-value" id="stat-pendentes">0</div>
+          <div class="card-sub">aguardam resposta</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Aceites</div>
+          <div class="card-value" id="stat-aceites">0</div>
+          <div class="card-sub">confirmados este mês</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Orçamentos Recentes</h3>
+          <button class="btn btn-primary btn-sm" onclick="switchPanel('orcamento')">+ Novo</button>
+        </div>
+        <table>
+          <thead><tr><th>Nº</th><th>Cliente</th><th>Data</th><th>Total c/ IVA</th><th>Estado</th><th>Ações</th></tr></thead>
+          <tbody id="dashboard-table"><tr><td colspan="6" style="color:var(--text-dim);text-align:center;padding:2rem">Nenhum orçamento criado ainda</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- NOVO ORÇAMENTO -->
+    <div id="panel-orcamento" class="panel">
+      <div class="page-title">Novo Orçamento</div>
+      <div class="page-sub">Preencha os dados do cliente e adicione os itens</div>
+
+      <div class="form-card">
+        <h3>Dados do Cliente</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome do Cliente *</label>
+            <input type="text" id="or-cliente" placeholder="Ex: João Silva">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="or-email" placeholder="cliente@email.com">
+          </div>
+          <div class="form-group">
+            <label>Telefone</label>
+            <input type="text" id="or-telefone" placeholder="+351 9xx xxx xxx">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Morada</label>
+            <input type="text" id="or-morada" placeholder="Rua, nº, código postal">
+          </div>
+          <div class="form-group">
+            <label>NIF</label>
+            <input type="text" id="or-nif" placeholder="PT000000000">
+          </div>
+          <div class="form-group">
+            <label>Válido até</label>
+            <input type="date" id="or-validade">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Notas Internas</label>
+            <textarea id="or-notas" placeholder="Notas de visita técnica, observações..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3>Itens do Orçamento</h3>
+        <div class="line-header">
+          <span>Código</span>
+          <span>Descrição</span>
+          <span>Qtd.</span>
+          <span>Preço Unit.</span>
+          <span>IVA %</span>
+          <span>Total s/ IVA</span>
+          <span></span>
+        </div>
+        <div class="line-items" id="line-items"></div>
+        <div class="flex-row" style="margin-top:0.75rem">
+          <button class="btn btn-ghost btn-sm" onclick="addLineItem()">+ Adicionar Linha</button>
+          <button class="btn btn-ghost btn-sm" onclick="openProductPicker()">+ Produto do Catálogo</button>
+        </div>
+        <div class="totals-block">
+          <div class="totals-row"><span>Base tributável 6%</span><span id="base6">€0,00</span></div>
+          <div class="totals-row"><span>IVA 6%</span><span id="iva6">€0,00</span></div>
+          <div class="totals-row"><span>Base tributável 23%</span><span id="base23">€0,00</span></div>
+          <div class="totals-row"><span>IVA 23%</span><span id="iva23">€0,00</span></div>
+          <div class="totals-row"><span>Total IVA</span><span id="total-iva">€0,00</span></div>
+          <div class="totals-row"><span>Total Líquido</span><span id="total-liq">€0,00</span></div>
+          <div class="totals-row total"><span>TOTAL</span><span id="total-geral">€0,00</span></div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3>Condições e Notas do Orçamento</h3>
+        <div class="form-group">
+          <textarea id="or-condicoes" rows="4">Este orçamento é válido por 30 dias.
+Este documento foi elaborado com base em informação obtida. Caso aplicável, serão realizados ajustes ao Orçamento após visita técnica.
+Excluem-se do orçamento todos os trabalhos inerentes a construção civil.
+O valor da mão de obra inclui os trabalhos previstos durante a visita técnica para execução da montagem orçamentada.</textarea>
+        </div>
+      </div>
+
+      <div class="flex-row" style="margin-bottom:2rem">
+        <button class="btn btn-primary" onclick="saveOrcamento()">💾 Guardar Orçamento</button>
+        <button class="btn btn-ghost" onclick="exportarOrcamentoPDF()">📄 Exportar PDF</button>
+        <button class="btn btn-ghost" onclick="gerarEmailOrcamento()">✉️ Gerar Email</button>
+        <button class="btn btn-ghost" onclick="clearOrcamento()">🗑️ Limpar</button>
+      </div>
+    </div>
+
+    <!-- LISTA -->
+    <div id="panel-lista" class="panel">
+      <div class="page-title">Todos os Orçamentos</div>
+      <div class="page-sub">Gestão completa de orçamentos emitidos</div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Orçamentos</h3>
+          <button class="btn btn-primary btn-sm" onclick="switchPanel('orcamento')">+ Novo</button>
+        </div>
+        <table>
+          <thead><tr><th>Nº</th><th>Cliente</th><th>Data</th><th>Válido até</th><th>Total c/ IVA</th><th>Estado</th><th>Ações</th></tr></thead>
+          <tbody id="lista-table"><tr><td colspan="7" style="color:var(--text-dim);text-align:center;padding:2rem">Nenhum orçamento</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TABELAS DE PREÇOS -->
+    <div id="panel-tabelas" class="panel">
+      <div class="page-title">Tabelas de Preços de Materiais</div>
+      <div class="page-sub">Preços atualizados de materiais de instalação</div>
+
+      <div class="flex-row" style="margin-bottom:1rem">
+        <input type="file" id="xlsx-upload" accept=".xlsx,.xls" onchange="importXLSX(event)">
+        <button class="btn btn-ghost" onclick="document.getElementById('xlsx-upload').click()">📥 Atualizar via Excel</button>
+        <button class="btn btn-ghost" onclick="exportarTabelaExcel()">📤 Exportar Excel</button>
+        <button class="btn btn-ghost btn-sm" onclick="switchPanel('add-material')">+ Novo Material</button>
+      </div>
+
+      <div class="table-wrap">
+        <div class="cat-header">Tubos de Cobre</div>
+        <table>
+          <thead><tr><th>Produto</th><th>Preço Rolo PVP</th><th>Preço Rolo Custo</th><th>€/m PVP</th><th>€/m Custo</th><th>Ações</th></tr></thead>
+          <tbody id="tbl-cobre"></tbody>
+        </table>
+        <div class="cat-header">Tubos, Cabos e Calhas</div>
+        <table>
+          <thead><tr><th>Produto</th><th>Preço Rolo PVP</th><th>Preço Rolo Custo</th><th>€/m PVP</th><th>€/m Custo</th><th>Ações</th></tr></thead>
+          <tbody id="tbl-cabos"></tbody>
+        </table>
+        <div class="cat-header">Material Exterior e Acessórios</div>
+        <table>
+          <thead><tr><th>Produto</th><th>Preço Unit. PVP</th><th>Preço Unit. Custo</th><th></th><th></th><th>Ações</th></tr></thead>
+          <tbody id="tbl-exterior"></tbody>
+        </table>
+        <div class="cat-header">Mão de Obra</div>
+        <table>
+          <thead><tr><th>Função</th><th>€/hora PVP</th><th>€/hora Custo</th><th></th><th></th><th>Ações</th></tr></thead>
+          <tbody id="tbl-obra"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PRODUTOS / MÁQUINAS -->
+    <div id="panel-produtos" class="panel">
+      <div class="page-title">Catálogo de Produtos / Máquinas</div>
+      <div class="page-sub">Equipamentos Midea e outros para incluir nos orçamentos</div>
+
+      <div class="flex-row" style="margin-bottom:1rem">
+        <div class="product-search">
+          <input type="text" id="search-produto" placeholder="Pesquisar produto..." oninput="renderProdutos()">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-produto')">+ Adicionar Produto</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Código</th><th>Descrição</th><th>BTU</th><th>Preço PVP</th><th>IVA</th><th>Tipo</th><th>Ações</th></tr></thead>
+          <tbody id="tbl-produtos"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EMAIL TEMPLATES -->
+    <div id="panel-email" class="panel">
+      <div class="page-title">Templates de Email</div>
+      <div class="page-sub">Mensagens padronizadas para envio de orçamentos</div>
+
+      <div class="template-tabs">
+        <button class="tpl-tab active" onclick="setTpl(0, this)">Envio de Orçamento</button>
+        <button class="tpl-tab" onclick="setTpl(1, this)">Follow-up (3 dias)</button>
+        <button class="tpl-tab" onclick="setTpl(2, this)">Follow-up (7 dias)</button>
+        <button class="tpl-tab" onclick="setTpl(3, this)">Confirmação de Trabalho</button>
+        <button class="tpl-tab" onclick="setTpl(4, this)">Agendamento Visita</button>
+      </div>
+
+      <div class="form-card">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Assunto</label>
+            <input type="text" id="email-subject" readonly style="font-weight:500">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0.75rem">
+          <label>Corpo do Email</label>
+          <div class="email-box" id="email-body" contenteditable="true"></div>
+        </div>
+        <div class="flex-row">
+          <button class="btn btn-primary" onclick="copyEmail()">📋 Copiar Email</button>
+          <button class="btn btn-ghost" onclick="openMailto()">✉️ Abrir no Mail</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveTpl()">💾 Guardar Alterações</button>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3>Variáveis Disponíveis</h3>
+        <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.7">
+          Use estas variáveis nos templates — são substituídas automaticamente ao gerar email para um orçamento:<br><br>
+          <code style="color:var(--cyan)">{CLIENTE}</code> — Nome do cliente &nbsp;|&nbsp;
+          <code style="color:var(--cyan)">{OR_NUM}</code> — Nº do orçamento &nbsp;|&nbsp;
+          <code style="color:var(--cyan)">{TOTAL}</code> — Total com IVA &nbsp;|&nbsp;
+          <code style="color:var(--cyan)">{VALIDADE}</code> — Data de validade &nbsp;|&nbsp;
+          <code style="color:var(--cyan)">{DATA}</code> — Data de hoje
+        </p>
+      </div>
+    </div>
+
+    <!-- IMPORTAR EXCEL -->
+    <div id="panel-import" class="panel">
+      <div class="page-title">Importar Excel</div>
+      <div class="page-sub">Atualize a tabela de preços de materiais automaticamente via ficheiro Excel</div>
+
+      <div class="upload-zone" onclick="document.getElementById('xlsx-upload2').click()">
+        <input type="file" id="xlsx-upload2" accept=".xlsx,.xls" onchange="importXLSX(event)">
+        <div class="upload-icon">📊</div>
+        <p><strong>Clique para selecionar</strong> ou arraste o ficheiro Excel aqui</p>
+        <p style="margin-top:0.25rem">Compatível com a Folha de Cálculo Orçamento (formato Macuti)</p>
+      </div>
+
+      <div class="form-card">
+        <h3>Como Funciona</h3>
+        <p style="font-size:0.875rem;color:var(--text-muted);line-height:1.8">
+          1. Selecione o ficheiro Excel com a folha de cálculo atualizada<br>
+          2. O sistema lê automaticamente todos os materiais, preços PVP e custo<br>
+          3. A tabela de preços é atualizada instantaneamente<br>
+          4. Os novos preços ficam disponíveis ao criar orçamentos<br><br>
+          O sistema é compatível com as folhas: <em>Folha calculo orçamento</em> e variantes.
+        </p>
+      </div>
+
+      <div id="import-preview" style="display:none">
+        <div class="page-title" style="font-size:1rem;margin-bottom:0.5rem">Pré-visualização da Importação</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Categoria</th><th>Produto</th><th>PVP/un</th><th>Custo/un</th><th>Estado</th></tr></thead>
+            <tbody id="import-table"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:1rem">
+          <button class="btn btn-primary" onclick="confirmImport()">✅ Confirmar Importação</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-add-produto">
+  <div class="modal">
+    <h3>Adicionar Produto / Máquina</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Código</label>
+        <input type="text" id="p-codigo" placeholder="Ex: CB1-07HRF">
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="p-tipo">
+          <option>Unidade Interior - Mural</option>
+          <option>Unidade Interior - Cassete</option>
+          <option>Unidade Interior - Ducto</option>
+          <option>Unidade Exterior</option>
+          <option>Multi-Split Exterior</option>
+          <option>Bomba de Calor</option>
+          <option>Outro</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:0.75rem">
+      <label>Descrição Completa</label>
+      <input type="text" id="p-desc" placeholder="Ex: Midea Multi-split Mural Breezeless E 7000 BTU">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>BTU</label>
+        <input type="number" id="p-btu" placeholder="7000">
+      </div>
+      <div class="form-group">
+        <label>kW</label>
+        <input type="number" id="p-kw" placeholder="2.05" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Preço PVP (€, sem IVA)</label>
+        <input type="number" id="p-pvp" placeholder="165.00" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>IVA %</label>
+        <select id="p-iva">
+          <option value="6">6%</option>
+          <option value="23" selected>23%</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-produto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addProduto()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-product-picker">
+  <div class="modal" style="max-width:700px">
+    <h3>Selecionar do Catálogo</h3>
+    <input type="text" id="picker-search" placeholder="Pesquisar produto..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.875rem;padding:0.6rem 0.75rem;outline:none;margin-bottom:1rem" oninput="renderPicker()">
+    <div style="max-height:50vh;overflow-y:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:var(--surface2)"><th style="padding:0.5rem;font-size:0.7rem;color:var(--text-muted)">Código</th><th style="padding:0.5rem;font-size:0.7rem;color:var(--text-muted)">Descrição</th><th style="padding:0.5rem;font-size:0.7rem;color:var(--text-muted)">BTU</th><th style="padding:0.5rem;font-size:0.7rem;color:var(--text-muted)">PVP</th><th style="padding:0.5rem;font-size:0.7rem;color:var(--text-muted)">IVA</th><th></th></tr></thead>
+        <tbody id="picker-table"></tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-product-picker')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-email-gen">
+  <div class="modal" style="max-width:640px">
+    <h3>Email Gerado</h3>
+    <div class="form-group" style="margin-bottom:0.75rem">
+      <label>Para</label>
+      <input type="text" id="gen-to" readonly>
+    </div>
+    <div class="form-group" style="margin-bottom:0.75rem">
+      <label>Assunto</label>
+      <input type="text" id="gen-subject" readonly>
+    </div>
+    <div class="form-group" style="margin-bottom:0.75rem">
+      <label>Corpo</label>
+      <div class="email-box" id="gen-body" style="max-height:300px;overflow-y:auto"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-email-gen')">Fechar</button>
+      <button class="btn btn-ghost" onclick="copyGenEmail()">📋 Copiar</button>
+      <button class="btn btn-primary" onclick="openGenMailto()">✉️ Abrir no Mail</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ===================== STATE =====================
+let orcamentos = JSON.parse(localStorage.getItem('macuti_orc') || '[]');
+let materiais = JSON.parse(localStorage.getItem('macuti_mat') || 'null') || getDefaultMateriais();
+let produtos = JSON.parse(localStorage.getItem('macuti_prod') || 'null') || getDefaultProdutos();
+let templates = JSON.parse(localStorage.getItem('macuti_tpl') || 'null') || getDefaultTemplates();
+let importBuffer = [];
+let lineItems = [];
+let currentTpl = 0;
+let orcCounter = JSON.parse(localStorage.getItem('macuti_counter') || '421');
+
+// ===================== DEFAULT DATA =====================
+function getDefaultMateriais() {
+  return {
+    cobre: [
+      { nome: 'Tubo de Cobre 1/4 (6,4mm) rolo 50m', pvpRolo: 136.5, custoRolo: 77.805, pvpM: 2.73, custoM: 1.5561 },
+      { nome: 'Tubo de Cobre 3/8 (9,5mm) rolo 50m', pvpRolo: 208, custoRolo: 118.56, pvpM: 4.16, custoM: 2.3712 },
+      { nome: 'Tubo de cobre 1/2 (12,7mm) rolo 50m', pvpRolo: 300, custoRolo: 171, pvpM: 6, custoM: 3.42 },
+      { nome: 'Tubo de cobre 3/4 (19,1mm) rolo 25m', pvpRolo: 310, custoRolo: 176.7, pvpM: 12.4, custoM: 7.068 },
+      { nome: 'Tubo de cobre 5/8 (15,9mm) rolo 25m', pvpRolo: 429, custoRolo: 244.53, pvpM: 17.16, custoM: 9.7812 },
+      { nome: 'Tubo de cobre 7/8 (22,1mm) rolo 25m', pvpRolo: 395, custoRolo: 225.15, pvpM: 15.8, custoM: 9.006 },
+    ],
+    cabos: [
+      { nome: 'Tubo de drenagem 30m', pvpRolo: 40.29, custoRolo: 26.19, pvpM: 1.343, custoM: 0.873 },
+      { nome: 'Cabo Elétrico 100m', pvpRolo: 247.21, custoRolo: 148.33, pvpM: 2.4721, custoM: 1.4833 },
+      { nome: 'Cabo Sinal 100m', pvpRolo: 207, custoRolo: 129, pvpM: 2.07, custoM: 1.29 },
+      { nome: 'Calha (metro)', pvpRolo: 9.7416, custoRolo: 5.72, pvpM: 4.8708, custoM: 2.86 },
+      { nome: 'Tubo Corrugado 20 parede lisa', pvpRolo: 24, custoRolo: 17.15, pvpM: 0.48, custoM: 0.343 },
+    ],
+    exterior: [
+      { nome: 'Cinobloco', pvpUn: 5.75, custoUn: 3.45 },
+      { nome: 'Poleia', pvpUn: 27.65, custoUn: 17.9725 },
+      { nome: 'Apoio de chão', pvpUn: 13.45, custoUn: 8.7425 },
+      { nome: 'Caixas pré-instalação', pvpUn: 4.8, custoUn: 3.12 },
+    ],
+    obra: [
+      { nome: 'Técnico (Wellington/Tiago)', pvpH: 12, custoH: 9.572 },
+      { nome: 'Ajudante (Robert)', pvpH: 12, custoH: 7.761 },
+      { nome: 'Técnico Sénior (João)', pvpH: 14, custoH: 14.571 },
+      { nome: 'Deslocação', pvpH: 12, custoH: 6 },
+    ]
+  };
+}
+
+function getDefaultProdutos() {
+  return [
+    { codigo: 'CB1-07HRFN8-I', desc: 'Midea Multi-split Mural Breezeless E 7000 BTU', btu: 7000, kw: 2.05, pvp: 165, iva: 6, tipo: 'Unidade Interior - Mural' },
+    { codigo: 'MSCB1BU-12HFNX-QRD1GW', desc: 'Midea Multi-split Mural Breezeless E 12283 BTU', btu: 12283, kw: 3.6, pvp: 209, iva: 23, tipo: 'Unidade Interior - Mural' },
+    { codigo: 'M4O-36FN8-Q', desc: 'Midea Multi-Split Unidade Exterior 36000 BTU', btu: 36000, kw: 10.55, pvp: 1960, iva: 23, tipo: 'Multi-Split Exterior' },
+    { codigo: 'MAT_AC', desc: 'Materiais para instalação (Poleia, Cinobloco, etc.)', btu: null, kw: null, pvp: 33.4, iva: 23, tipo: 'Outro' },
+    { codigo: 'MDO_AC', desc: 'Mão de obra para montagem do equipamento e instalação da tubagem', btu: null, kw: null, pvp: 488, iva: 23, tipo: 'Outro' },
+  ];
+}
+
+function getDefaultTemplates() {
+  return [
+    {
+      subject: 'Orçamento Macuti – OR {OR_NUM} | Ar Condicionado',
+      body: `Exmo(a). Sr(a). {CLIENTE},
+
+Agradecemos o seu contacto e o interesse nos nossos serviços.
+
+Conforme acordado, enviamos em anexo o Orçamento nº {OR_NUM}, datado de {DATA}, referente à instalação de sistema de ar condicionado.
+
+Resumo do orçamento:
+• Total (com IVA): {TOTAL}
+• Válido até: {VALIDADE}
+
+O orçamento foi elaborado com base na informação fornecida. Caso seja necessária uma visita técnica prévia, poderemos ajustar os valores em conformidade.
+
+Para qualquer esclarecimento adicional, estamos ao inteiro dispor.
+
+Com os melhores cumprimentos,
+
+Macuti II Ar Con Ventilação Lda
+Rua Irene Isidro, 25 | 2775-205 Parede
+Tlf: 925 710 285
+geral@macuti.pt | www.macuti.pt`
+    },
+    {
+      subject: 'Follow-up – Orçamento OR {OR_NUM} | Macuti',
+      body: `Exmo(a). Sr(a). {CLIENTE},
+
+Esperamos que esteja bem.
+
+Gostaríamos de dar seguimento ao Orçamento nº {OR_NUM} que lhe enviámos há 3 dias, no valor de {TOTAL} (com IVA), válido até {VALIDADE}.
+
+Caso tenha alguma dúvida ou pretenda ajustar algum detalhe, estamos disponíveis para o ajudar.
+
+Aguardamos o seu contacto.
+
+Com os melhores cumprimentos,
+Macuti – 925 710 285 | geral@macuti.pt`
+    },
+    {
+      subject: 'Último aviso – Orçamento OR {OR_NUM} a expirar | Macuti',
+      body: `Exmo(a). Sr(a). {CLIENTE},
+
+O Orçamento nº {OR_NUM} que enviámos expira em breve ({VALIDADE}).
+
+Se desejar avançar, ou se precisar de algum ajuste, contacte-nos o mais brevemente possível para que possamos garantir a sua prioridade na agenda.
+
+Tlf: 925 710 285
+geral@macuti.pt
+
+Com os melhores cumprimentos,
+Equipa Macuti`
+    },
+    {
+      subject: 'Confirmação de Trabalho – OR {OR_NUM} | Macuti',
+      body: `Exmo(a). Sr(a). {CLIENTE},
+
+Agradecemos a confirmação do Orçamento nº {OR_NUM}.
+
+Iremos entrar em contacto brevemente para agendar a data de instalação mais conveniente para si.
+
+Pedimos que, até à data de instalação, o local de instalação esteja acessível e, se aplicável, que a alimentação elétrica esteja preparada.
+
+Qualquer questão, estamos disponíveis.
+
+Com os melhores cumprimentos,
+Macuti – 925 710 285`
+    },
+    {
+      subject: 'Agendamento Visita Técnica | Macuti',
+      body: `Exmo(a). Sr(a). {CLIENTE},
+
+No seguimento do nosso contacto, confirmamos a realização de uma visita técnica ao local para levantamento de medições e elaboração de proposta mais detalhada.
+
+Por favor, confirme a data e hora mais conveniente para si, ou entre em contacto pelo 925 710 285.
+
+Nota: Esta visita não tem qualquer custo associado.
+
+Com os melhores cumprimentos,
+Macuti – geral@macuti.pt`
+    }
+  ];
+}
+
+// ===================== SAVE =====================
+function save() {
+  localStorage.setItem('macuti_orc', JSON.stringify(orcamentos));
+  localStorage.setItem('macuti_mat', JSON.stringify(materiais));
+  localStorage.setItem('macuti_prod', JSON.stringify(produtos));
+  localStorage.setItem('macuti_tpl', JSON.stringify(templates));
+  localStorage.setItem('macuti_counter', JSON.stringify(orcCounter));
+}
+
+// ===================== NAVIGATION =====================
+function switchTab(name) {
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  switchPanel(name);
+}
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name)?.classList.add('active');
+  document.querySelectorAll('.sidebar-btn').forEach(b => {
+    if (b.getAttribute('onclick')?.includes("'" + name + "'")) b.classList.add('active');
+  });
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'lista') renderLista();
+  if (name === 'tabelas') renderTabelas();
+  if (name === 'produtos') renderProdutos();
+  if (name === 'email') setTpl(0);
+  if (name === 'orcamento') initOrcamento();
+}
+
+// ===================== ORCAMENTO =====================
+function initOrcamento() {
+  if (lineItems.length === 0) addLineItem();
+  // Set default validity (30 days from today)
+  const d = new Date(); d.setDate(d.getDate() + 30);
+  document.getElementById('or-validade').value = d.toISOString().split('T')[0];
+}
+
+function addLineItem(codigo='', desc='', qty=1, price=0, iva=23) {
+  const id = Date.now() + Math.random();
+  lineItems.push({ id, codigo, desc, qty, price, iva });
+  renderLineItems();
+}
+
+function removeLineItem(id) {
+  lineItems = lineItems.filter(l => l.id !== id);
+  renderLineItems();
+}
+
+function renderLineItems() {
+  const container = document.getElementById('line-items');
+  container.innerHTML = '';
+  lineItems.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'line-item-row';
+    div.innerHTML = `
+      <input type="text" value="${item.codigo}" placeholder="Código" onchange="updateLine(${item.id},'codigo',this.value)">
+      <input type="text" value="${item.desc}" placeholder="Descrição do item" onchange="updateLine(${item.id},'desc',this.value)">
+      <input type="number" value="${item.qty}" min="0" step="0.01" onchange="updateLine(${item.id},'qty',this.value)">
+      <input type="number" value="${item.price}" min="0" step="0.01" onchange="updateLine(${item.id},'price',this.value)">
+      <select onchange="updateLine(${item.id},'iva',this.value)">
+        <option value="6" ${item.iva==6?'selected':''}>6%</option>
+        <option value="23" ${item.iva==23?'selected':''}>23%</option>
+      </select>
+      <input type="number" value="${(item.qty * item.price).toFixed(2)}" readonly style="opacity:0.6">
+      <button class="remove-line" onclick="removeLineItem(${item.id})">✕</button>
+    `;
+    container.appendChild(div);
+  });
+  calcTotals();
+}
+
+function updateLine(id, field, val) {
+  const item = lineItems.find(l => l.id === id);
+  if (!item) return;
+  if (field === 'qty' || field === 'price') item[field] = parseFloat(val) || 0;
+  else item[field] = val;
+  renderLineItems();
+}
+
+function calcTotals() {
+  let b6=0, b23=0;
+  lineItems.forEach(l => {
+    const t = l.qty * l.price;
+    if (l.iva == 6) b6 += t; else b23 += t;
+  });
+  const i6 = b6 * 0.06, i23 = b23 * 0.23;
+  const totalIva = i6 + i23;
+  const totalLiq = b6 + b23;
+  const total = totalLiq + totalIva;
+  const f = v => '€' + v.toFixed(2).replace('.',',');
+  document.getElementById('base6').textContent = f(b6);
+  document.getElementById('iva6').textContent = f(i6);
+  document.getElementById('base23').textContent = f(b23);
+  document.getElementById('iva23').textContent = f(i23);
+  document.getElementById('total-iva').textContent = f(totalIva);
+  document.getElementById('total-liq').textContent = f(totalLiq);
+  document.getElementById('total-geral').textContent = f(total);
+  return { b6, b23, i6, i23, totalIva, totalLiq, total };
+}
+
+function saveOrcamento() {
+  const cliente = document.getElementById('or-cliente').value.trim();
+  if (!cliente) { toast('⚠️ Introduza o nome do cliente'); return; }
+  if (lineItems.length === 0 || lineItems.every(l => l.price === 0)) {
+    toast('⚠️ Adicione pelo menos um item com preço'); return;
+  }
+  const totals = calcTotals();
+  const num = ++orcCounter;
+  const or = {
+    id: Date.now(),
+    num: `OR 2026/${num}`,
+    cliente,
+    email: document.getElementById('or-email').value,
+    telefone: document.getElementById('or-telefone').value,
+    morada: document.getElementById('or-morada').value,
+    nif: document.getElementById('or-nif').value,
+    validade: document.getElementById('or-validade').value,
+    notas: document.getElementById('or-notas').value,
+    condicoes: document.getElementById('or-condicoes').value,
+    items: [...lineItems],
+    totals,
+    data: new Date().toISOString().split('T')[0],
+    estado: 'Pendente'
+  };
+  orcamentos.unshift(or);
+  save();
+  toast('✅ Orçamento ' + or.num + ' guardado!');
+  renderDashboard();
+}
+
+function clearOrcamento() {
+  lineItems = [];
+  ['or-cliente','or-email','or-telefone','or-morada','or-nif','or-notas'].forEach(id => document.getElementById(id).value = '');
+  initOrcamento();
+  toast('Orçamento limpo');
+}
+
+// ===================== DASHBOARD / LISTA =====================
+function renderDashboard() {
+  document.getElementById('stat-total').textContent = orcamentos.length;
+  const totalVal = orcamentos.reduce((s, o) => s + (o.totals?.totalLiq || 0), 0);
+  document.getElementById('stat-valor').textContent = '€' + totalVal.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  document.getElementById('stat-pendentes').textContent = orcamentos.filter(o => o.estado === 'Pendente').length;
+  document.getElementById('stat-aceites').textContent = orcamentos.filter(o => o.estado === 'Aceite').length;
+
+  const tbody = document.getElementById('dashboard-table');
+  if (orcamentos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--text-dim);text-align:center;padding:2rem">Nenhum orçamento criado ainda</td></tr>';
+    return;
+  }
+  tbody.innerHTML = orcamentos.slice(0, 8).map(o => `
+    <tr>
+      <td><strong>${o.num}</strong></td>
+      <td>${o.cliente}</td>
+      <td>${o.data}</td>
+      <td><strong>€${o.totals?.total?.toFixed(2) || '0,00'}</strong></td>
+      <td><span class="badge ${o.estado==='Aceite'?'badge-green':o.estado==='Recusado'?'badge-red':'badge-yellow'}">${o.estado}</span></td>
+      <td class="flex-row" style="gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="gerarEmailOrId(${o.id})">✉️</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportarOrId(${o.id})">📄</button>
+        <button class="btn btn-ghost btn-sm" onclick="changeEstado(${o.id})">↺</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderLista() {
+  const tbody = document.getElementById('lista-table');
+  if (orcamentos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--text-dim);text-align:center;padding:2rem">Nenhum orçamento</td></tr>';
+    return;
+  }
+  tbody.innerHTML = orcamentos.map(o => `
+    <tr>
+      <td><strong>${o.num}</strong></td>
+      <td>${o.cliente}</td>
+      <td>${o.data}</td>
+      <td>${o.validade || '—'}</td>
+      <td><strong>€${o.totals?.total?.toFixed(2) || '0,00'}</strong></td>
+      <td><span class="badge ${o.estado==='Aceite'?'badge-green':o.estado==='Recusado'?'badge-red':'badge-yellow'}">${o.estado}</span></td>
+      <td class="flex-row" style="gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="gerarEmailOrId(${o.id})">✉️ Email</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportarOrId(${o.id})">📄 PDF</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteOr(${o.id})">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function changeEstado(id) {
+  const or = orcamentos.find(o => o.id === id);
+  if (!or) return;
+  const estados = ['Pendente', 'Aceite', 'Recusado', 'Em curso'];
+  const idx = (estados.indexOf(or.estado) + 1) % estados.length;
+  or.estado = estados[idx];
+  save();
+  renderDashboard();
+  renderLista();
+  toast('Estado: ' + or.estado);
+}
+
+function deleteOr(id) {
+  if (!confirm('Eliminar orçamento?')) return;
+  orcamentos = orcamentos.filter(o => o.id !== id);
+  save();
+  renderLista();
+  renderDashboard();
+  toast('Orçamento eliminado');
+}
+
+// ===================== TABELAS =====================
+function renderTabelas() {
+  const fmtV = v => v ? '€' + parseFloat(v).toFixed(2) : '—';
+  
+  document.getElementById('tbl-cobre').innerHTML = materiais.cobre.map((m, i) => `
+    <tr>
+      <td>${m.nome}</td>
+      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.pvpRolo}" onchange="updateMat('cobre',${i},'pvpRolo',this.value)"></td>
+      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.custoRolo}" onchange="updateMat('cobre',${i},'custoRolo',this.value)"></td>
+      <td><strong>${fmtV(m.pvpM)}</strong></td>
+      <td style="color:var(--text-muted)">${fmtV(m.custoM)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteMat('cobre',${i})">✕</button></td>
+    </tr>
+  `).join('');
+
+  document.getElementById('tbl-cabos').innerHTML = materiais.cabos.map((m, i) => `
+    <tr>
+      <td>${m.nome}</td>
+      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.pvpRolo}" onchange="updateMat('cabos',${i},'pvpRolo',this.value)"></td>
+      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.custoRolo}" onchange="updateMat('cabos',${i},'custoRolo',this.value)"></td>
+      <td><strong>${fmtV(m.pvpM)}</strong></td>
+      <td style="color:var(--text-muted)">${fmtV(m.custoM)}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteMat('cabos',${i})">✕</button></td>
+    </tr>
+  `).join('');
+
+  document.getElementById('tbl-exterior').innerHTML = materiais.exterior.map((m, i) => `
+    <tr>
+      <td>${m.nome}</td>
+      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.pvpUn}" onchange="updateMat('exterior',${i},'pvpUn',this.value)"></td>
+      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.custoUn}" onchange="updateMat('exterior',${i},'custoUn',this.value)"></td>
+      <td></td><td></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteMat('exterior',${i})">✕</button></td>
+    </tr>
+  `).join('');
+
+  document.getElementById('tbl-obra').innerHTML = materiais.obra.map((m, i) => `
+    <tr>
+      <td>${m.nome}</td>
+      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.pvpH}" onchange="updateMat('obra',${i},'pvpH',this.value)"></td>
+      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.custoH}" onchange="updateMat('obra',${i},'custoH',this.value)"></td>
+      <td></td><td></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteMat('obra',${i})">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function updateMat(cat, idx, field, val) {
+  materiais[cat][idx][field] = parseFloat(val) || 0;
+  // Auto-calc €/m from rolo price
+  if (cat === 'cobre' || cat === 'cabos') {
+    const m = materiais[cat][idx];
+    const nome = m.nome;
+    const roloSize = nome.includes('50m') ? 50 : nome.includes('30m') ? 30 : nome.includes('100m') ? 100 : 25;
+    if (field === 'pvpRolo') m.pvpM = parseFloat((m.pvpRolo / roloSize).toFixed(4));
+    if (field === 'custoRolo') m.custoM = parseFloat((m.custoRolo / roloSize).toFixed(4));
+  }
+  save();
+  renderTabelas();
+  toast('Preço atualizado');
+}
+
+function deleteMat(cat, idx) {
+  materiais[cat].splice(idx, 1);
+  save();
+  renderTabelas();
+}
+
+function exportarTabelaExcel() {
+  const wb = XLSX.utils.book_new();
+  const rows = [['Categoria','Produto','PVP Rolo/Un','Custo Rolo/Un','PVP/m ou Un','Custo/m ou Un']];
+  materiais.cobre.forEach(m => rows.push(['Tubos Cobre', m.nome, m.pvpRolo, m.custoRolo, m.pvpM, m.custoM]));
+  materiais.cabos.forEach(m => rows.push(['Cabos/Tubos', m.nome, m.pvpRolo, m.custoRolo, m.pvpM, m.custoM]));
+  materiais.exterior.forEach(m => rows.push(['Exterior', m.nome, '', '', m.pvpUn, m.custoUn]));
+  materiais.obra.forEach(m => rows.push(['Mão de Obra', m.nome, '', '', m.pvpH, m.custoH]));
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, 'Tabela Preços');
+  XLSX.writeFile(wb, 'Macuti_Tabela_Precos.xlsx');
+  toast('📥 Excel exportado');
+}
+
+// ===================== IMPORT XLSX =====================
+function importXLSX(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const wb = XLSX.read(ev.target.result, { type: 'binary' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      importBuffer = [];
+
+      data.forEach((row, ri) => {
+        const nome = String(row[1] || '').trim();
+        if (!nome || nome.length < 5) return;
+        // Detect copper pipes
+        if (nome.toLowerCase().includes('tubo de cobre') || nome.toLowerCase().includes('tubo cobre')) {
+          const pvpR = parseFloat(row[2]) || 0;
+          const custoR = parseFloat(row[3]) || 0;
+          const pvpM = parseFloat(row[4]) || 0;
+          const custoM = parseFloat(row[5]) || 0;
+          if (pvpR > 0) importBuffer.push({ cat: 'cobre', nome, pvpRolo: pvpR, custoRolo: custoR, pvpM, custoM });
+        }
+        // Detect cables/tubes
+        if (nome.toLowerCase().includes('cabo') || nome.toLowerCase().includes('tubo de drenagem') || nome.toLowerCase().includes('calha') || nome.toLowerCase().includes('corrugado')) {
+          const pvpR = parseFloat(row[2]) || 0;
+          const custoR = parseFloat(row[3]) || 0;
+          const pvpM = parseFloat(row[4]) || 0;
+          const custoM = parseFloat(row[5]) || 0;
+          if (pvpR > 0) importBuffer.push({ cat: 'cabos', nome, pvpRolo: pvpR, custoRolo: custoR, pvpM, custoM });
+        }
+        // Detect exterior materials
+        if (nome.toLowerCase().includes('cinobloco') || nome.toLowerCase().includes('poleia') || nome.toLowerCase().includes('apoio') || nome.toLowerCase().includes('caixa')) {
+          const pvpUn = parseFloat(row[4]) || 0;
+          const custoUn = parseFloat(row[5]) || 0;
+          if (pvpUn > 0) importBuffer.push({ cat: 'exterior', nome, pvpUn, custoUn });
+        }
+      });
+
+      if (importBuffer.length === 0) {
+        toast('⚠️ Nenhum dado compatível encontrado no Excel');
+        return;
+      }
+
+      const previewEl = document.getElementById('import-preview');
+      previewEl.style.display = 'block';
+      document.getElementById('import-table').innerHTML = importBuffer.map(m => `
+        <tr>
+          <td><span class="badge badge-blue">${m.cat}</span></td>
+          <td>${m.nome}</td>
+          <td>${m.pvpRolo || m.pvpUn || '—'}</td>
+          <td>${m.custoRolo || m.custoUn || '—'}</td>
+          <td><span class="badge badge-green">Novo</span></td>
+        </tr>
+      `).join('');
+      toast('📊 ' + importBuffer.length + ' items encontrados — confirme a importação');
+      switchPanel('import');
+    } catch(err) {
+      toast('❌ Erro ao ler Excel: ' + err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+function confirmImport() {
+  importBuffer.forEach(m => {
+    if (m.cat === 'cobre') {
+      const existing = materiais.cobre.findIndex(x => x.nome === m.nome);
+      if (existing >= 0) materiais.cobre[existing] = m;
+      else materiais.cobre.push(m);
+    } else if (m.cat === 'cabos') {
+      const existing = materiais.cabos.findIndex(x => x.nome === m.nome);
+      if (existing >= 0) materiais.cabos[existing] = m;
+      else materiais.cabos.push(m);
+    } else if (m.cat === 'exterior') {
+      const existing = materiais.exterior.findIndex(x => x.nome === m.nome);
+      if (existing >= 0) materiais.exterior[existing] = m;
+      else materiais.exterior.push(m);
+    }
+  });
+  save();
+  importBuffer = [];
+  document.getElementById('import-preview').style.display = 'none';
+  toast('✅ Tabela de preços atualizada com sucesso!');
+  switchPanel('tabelas');
+}
+
+// ===================== PRODUTOS =====================
+function renderProdutos() {
+  const q = document.getElementById('search-produto')?.value?.toLowerCase() || '';
+  const filtered = produtos.filter(p => p.desc.toLowerCase().includes(q) || p.codigo.toLowerCase().includes(q));
+  document.getElementById('tbl-produtos').innerHTML = filtered.length === 0 ?
+    '<tr><td colspan="7" style="color:var(--text-dim);text-align:center;padding:2rem">Nenhum produto</td></tr>' :
+    filtered.map((p, i) => `
+      <tr>
+        <td><code style="color:var(--cyan);font-size:0.8rem">${p.codigo}</code></td>
+        <td>${p.desc}</td>
+        <td>${p.btu ? p.btu.toLocaleString() + ' BTU' : '—'}</td>
+        <td><strong>€${parseFloat(p.pvp).toFixed(2)}</strong></td>
+        <td><span class="badge badge-blue">${p.iva}%</span></td>
+        <td><span class="badge badge-blue" style="font-size:0.65rem">${p.tipo}</span></td>
+        <td class="flex-row" style="gap:4px">
+          <button class="btn btn-ghost btn-sm" onclick="addFromCatalogo(${produtos.indexOf(p)})">+ Orçamento</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduto(${produtos.indexOf(p)})">✕</button>
+        </td>
+      </tr>
+    `).join('');
+}
+
+function addProduto() {
+  const p = {
+    codigo: document.getElementById('p-codigo').value,
+    desc: document.getElementById('p-desc').value,
+    btu: parseInt(document.getElementById('p-btu').value) || null,
+    kw: parseFloat(document.getElementById('p-kw').value) || null,
+    pvp: parseFloat(document.getElementById('p-pvp').value) || 0,
+    iva: parseInt(document.getElementById('p-iva').value),
+    tipo: document.getElementById('p-tipo').value
+  };
+  if (!p.desc) { toast('⚠️ Preencha a descrição'); return; }
+  produtos.push(p);
+  save();
+  closeModal('modal-add-produto');
+  renderProdutos();
+  toast('✅ Produto adicionado');
+}
+
+function deleteProduto(idx) {
+  produtos.splice(idx, 1);
+  save();
+  renderProdutos();
+}
+
+function addFromCatalogo(idx) {
+  const p = produtos[idx];
+  lineItems.push({ id: Date.now() + Math.random(), codigo: p.codigo, desc: p.desc, qty: 1, price: p.pvp, iva: p.iva });
+  toast('✅ Adicionado ao orçamento');
+  switchPanel('orcamento');
+  renderLineItems();
+}
+
+// ===================== PRODUCT PICKER =====================
+function openProductPicker() {
+  openModal('modal-product-picker');
+  renderPicker();
+}
+
+function renderPicker() {
+  const q = document.getElementById('picker-search')?.value?.toLowerCase() || '';
+  const filtered = produtos.filter(p => p.desc.toLowerCase().includes(q) || p.codigo.toLowerCase().includes(q));
+  document.getElementById('picker-table').innerHTML = filtered.map((p, i) => `
+    <tr>
+      <td style="padding:0.5rem;font-size:0.8rem"><code style="color:var(--cyan)">${p.codigo}</code></td>
+      <td style="padding:0.5rem;font-size:0.8rem">${p.desc}</td>
+      <td style="padding:0.5rem;font-size:0.8rem">${p.btu ? p.btu.toLocaleString() : '—'}</td>
+      <td style="padding:0.5rem;font-size:0.8rem"><strong>€${parseFloat(p.pvp).toFixed(2)}</strong></td>
+      <td style="padding:0.5rem;font-size:0.8rem">${p.iva}%</td>
+      <td style="padding:0.5rem"><button class="btn btn-primary btn-sm" onclick="addFromPicker(${produtos.indexOf(p)})">Adicionar</button></td>
+    </tr>
+  `).join('');
+}
+
+function addFromPicker(idx) {
+  const p = produtos[idx];
+  lineItems.push({ id: Date.now() + Math.random(), codigo: p.codigo, desc: p.desc, qty: 1, price: p.pvp, iva: p.iva });
+  renderLineItems();
+  closeModal('modal-product-picker');
+  toast('✅ ' + p.codigo + ' adicionado');
+}
+
+// ===================== EMAIL =====================
+function setTpl(idx, el) {
+  currentTpl = idx;
+  document.querySelectorAll('.tpl-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else document.querySelectorAll('.tpl-tab')[idx]?.classList.add('active');
+  const tpl = templates[idx];
+  document.getElementById('email-subject').value = tpl.subject;
+  document.getElementById('email-body').textContent = tpl.body;
+}
+
+function saveTpl() {
+  templates[currentTpl].subject = document.getElementById('email-subject').value;
+  templates[currentTpl].body = document.getElementById('email-body').textContent;
+  save();
+  toast('✅ Template guardado');
+}
+
+function copyEmail() {
+  const body = document.getElementById('email-body').textContent;
+  navigator.clipboard.writeText(body).then(() => toast('📋 Email copiado!'));
+}
+
+function openMailto() {
+  const sub = encodeURIComponent(document.getElementById('email-subject').value);
+  const body = encodeURIComponent(document.getElementById('email-body').textContent);
+  window.location.href = `mailto:?subject=${sub}&body=${body}`;
+}
+
+function fillTemplate(tpl, or) {
+  return tpl
+    .replace(/{CLIENTE}/g, or.cliente)
+    .replace(/{OR_NUM}/g, or.num)
+    .replace(/{TOTAL}/g, '€' + or.totals?.total?.toFixed(2))
+    .replace(/{VALIDADE}/g, or.validade || '—')
+    .replace(/{DATA}/g, or.data);
+}
+
+function gerarEmailOrcamento() {
+  // Use current form data (unsaved)
+  const cliente = document.getElementById('or-cliente').value || '{CLIENTE}';
+  const validade = document.getElementById('or-validade').value || '—';
+  const totals = calcTotals();
+  const mockOr = {
+    cliente,
+    num: `OR 2026/${orcCounter + 1}`,
+    totals,
+    validade,
+    data: new Date().toISOString().split('T')[0]
+  };
+  showEmailModal(mockOr, document.getElementById('or-email').value);
+}
+
+function gerarEmailOrId(id) {
+  const or = orcamentos.find(o => o.id === id);
+  if (!or) return;
+  showEmailModal(or, or.email);
+}
+
+function exportarOrId(id) {
+  const or = orcamentos.find(o => o.id === id);
+  if (!or) return;
+  exportarOrcamentoPDFData(or);
+}
+
+function showEmailModal(or, emailTo) {
+  const tpl = templates[0];
+  document.getElementById('gen-to').value = emailTo || '';
+  document.getElementById('gen-subject').value = fillTemplate(tpl.subject, or);
+  document.getElementById('gen-body').textContent = fillTemplate(tpl.body, or);
+  openModal('modal-email-gen');
+}
+
+function copyGenEmail() {
+  navigator.clipboard.writeText(document.getElementById('gen-body').textContent).then(() => toast('📋 Copiado!'));
+}
+
+function openGenMailto() {
+  const to = document.getElementById('gen-to').value;
+  const sub = encodeURIComponent(document.getElementById('gen-subject').value);
+  const body = encodeURIComponent(document.getElementById('gen-body').textContent);
+  window.location.href = `mailto:${to}?subject=${sub}&body=${body}`;
+}
+
+// ===================== PDF EXPORT =====================
+function exportarOrcamentoPDF() {
+  const cliente = document.getElementById('or-cliente').value || 'Cliente';
+  const totals = calcTotals();
+  const mockOr = {
+    num: `OR 2026/${orcCounter + 1}`,
+    cliente,
+    email: document.getElementById('or-email').value,
+    telefone: document.getElementById('or-telefone').value,
+    morada: document.getElementById('or-morada').value,
+    nif: document.getElementById('or-nif').value,
+    validade: document.getElementById('or-validade').value,
+    items: [...lineItems],
+    totals,
+    data: new Date().toISOString().split('T')[0],
+    condicoes: document.getElementById('or-condicoes').value
+  };
+  exportarOrcamentoPDFData(mockOr);
+}
+
+function exportarOrcamentoPDFData(or) {
+  const win = window.open('', '_blank');
+  const rows = or.items.map(l => `
+    <tr>
+      <td>${l.codigo}</td>
+      <td>${l.desc}</td>
+      <td style="text-align:center">${l.qty}</td>
+      <td style="text-align:right">€${parseFloat(l.price).toFixed(2)}</td>
+      <td style="text-align:center">${l.iva}%</td>
+      <td style="text-align:right"><strong>€${(l.qty * l.price).toFixed(2)}</strong></td>
+    </tr>
+  `).join('');
+
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${or.num}</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; margin: 0; padding: 32px; color: #111; }
+    .header { display: flex; justify-content: space-between; margin-bottom: 32px; border-bottom: 2px solid #00C8E0; padding-bottom: 16px; }
+    .logo { font-size: 22px; font-weight: 900; color: #00C8E0; }
+    .logo small { display: block; font-size: 10px; font-weight: 400; color: #666; }
+    .or-info { text-align: right; }
+    .or-num { font-size: 16px; font-weight: 700; }
+    .cliente-block { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; background: #f5f5f5; padding: 12px 16px; border-radius: 6px; }
+    .label { font-size: 9px; text-transform: uppercase; color: #888; margin-bottom: 2px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    th { background: #0A0F1A; color: #fff; padding: 6px 10px; font-size: 10px; text-align: left; text-transform: uppercase; }
+    td { padding: 7px 10px; border-bottom: 1px solid #eee; }
+    tr:nth-child(even) td { background: #fafafa; }
+    .totals { margin-left: auto; width: 300px; }
+    .trow { display: flex; justify-content: space-between; padding: 4px 0; font-size: 11px; color: #555; }
+    .trow.big { font-size: 14px; font-weight: 700; color: #111; border-top: 1px solid #ccc; padding-top: 8px; margin-top: 4px; }
+    .conditions { margin-top: 24px; font-size: 10px; color: #666; line-height: 1.6; border-top: 1px solid #ddd; padding-top: 12px; }
+    .footer { margin-top: 32px; font-size: 9px; color: #aaa; text-align: center; border-top: 1px solid #eee; padding-top: 12px; }
+    @media print { body { padding: 16px; } }
+  </style></head><body>
+  <div class="header">
+    <div>
+      <div class="logo">macuti<small>AR CONDICIONADO E VENTILAÇÃO</small></div>
+      <div style="margin-top:8px;font-size:10px;color:#666">
+        MACUTI II AR CON VENTILACAO LDA<br>
+        Rua Irene Isidro, 25 | 2775-205 PAREDE<br>
+        Tlf: 925 710 285 | geral@macuti.pt<br>
+        NIF: PT517836955
+      </div>
+    </div>
+    <div class="or-info">
+      <div class="or-num">${or.num}</div>
+      <div style="font-size:10px;color:#666;margin-top:4px">Data: ${or.data}</div>
+      <div style="font-size:10px;color:#666">Válido até: ${or.validade || '—'}</div>
+    </div>
+  </div>
+  <div class="cliente-block">
+    <div>
+      <div class="label">Cliente</div>
+      <strong>${or.cliente}</strong><br>
+      <span style="color:#666">${or.morada || ''}</span>
+    </div>
+    <div>
+      <div class="label">NIF</div>
+      ${or.nif || '---------'}<br>
+      <span style="color:#666">${or.email || ''}</span><br>
+      <span style="color:#666">${or.telefone || ''}</span>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>Código</th><th>Descrição</th><th style="text-align:center">Qtd.</th><th style="text-align:right">Preço Unit.</th><th style="text-align:center">IVA</th><th style="text-align:right">Total s/ IVA</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div class="totals">
+    <div class="trow"><span>Base 6%</span><span>€${or.totals.b6?.toFixed(2)||'0.00'}</span></div>
+    <div class="trow"><span>IVA 6%</span><span>€${or.totals.i6?.toFixed(2)||'0.00'}</span></div>
+    <div class="trow"><span>Base 23%</span><span>€${or.totals.b23?.toFixed(2)||'0.00'}</span></div>
+    <div class="trow"><span>IVA 23%</span><span>€${or.totals.i23?.toFixed(2)||'0.00'}</span></div>
+    <div class="trow"><span>Total IVA</span><span>€${or.totals.totalIva?.toFixed(2)||'0.00'}</span></div>
+    <div class="trow"><span>Total Líquido</span><span>€${or.totals.totalLiq?.toFixed(2)||'0.00'}</span></div>
+    <div class="trow big"><span>TOTAL</span><span>€${or.totals.total?.toFixed(2)||'0.00'}</span></div>
+  </div>
+  <div class="conditions">${(or.condicoes||'').replace(/\n/g,'<br>')}</div>
+  <div class="footer">Este documento não serve de fatura | Processado pela Macuti – www.macuti.pt</div>
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+// ===================== MODAL =====================
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ===================== TOAST =====================
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 2500);
+}
+
+// ===================== INIT =====================
+renderDashboard();
+initOrcamento();
+setTpl(0);
+</script>
+</body>
+</html>
