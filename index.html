@@ -414,7 +414,152 @@
   .modal h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 1.25rem; }
   .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
 
-  input[type=file] { display: none; }
+  /* XLS SPREADSHEET STYLE */
+  .xls-wrap {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.8rem;
+  }
+  .xls-title-row {
+    display: flex;
+    align-items: center;
+    background: #0d1929;
+    border-bottom: 2px solid var(--cyan);
+    padding: 0;
+  }
+  .xls-col-head {
+    font-size: 0.65rem !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--cyan) !important;
+    background: transparent !important;
+    border: none !important;
+    text-align: center;
+  }
+  .xls-cat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface3);
+    padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+  .xls-add-btn {
+    background: rgba(0,200,224,0.1);
+    border: 1px solid rgba(0,200,224,0.3);
+    border-radius: 5px;
+    color: var(--cyan);
+    font-size: 0.7rem;
+    padding: 2px 10px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .xls-add-btn:hover { background: rgba(0,200,224,0.2); }
+  .xls-row {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid rgba(30,45,69,0.6);
+    transition: background 0.1s;
+  }
+  .xls-row:hover { background: rgba(255,255,255,0.025); }
+  .xls-row:nth-child(even) { background: rgba(0,0,0,0.12); }
+  .xls-row:nth-child(even):hover { background: rgba(255,255,255,0.02); }
+  .xls-cell {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border-right: 1px solid rgba(30,45,69,0.5);
+    display: flex;
+    align-items: stretch;
+  }
+  .xls-cell:last-child { border-right: none; }
+  .xls-label { font-weight: 500; }
+  .xls-notes-col { flex: 0 0 160px; }
+  .xls-del-col { flex: 0 0 36px; }
+  .xls-inp {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    padding: 0.45rem 0.6rem;
+    outline: none;
+    text-align: right;
+  }
+  .xls-inp.left { text-align: left; }
+  .xls-inp:focus { background: rgba(0,200,224,0.07); }
+  .xls-inp.calc-val { color: var(--cyan); font-weight: 600; background: transparent; cursor: default; }
+  .xls-inp.zero { color: var(--text-dim); }
+  .xls-del-btn {
+    width: 36px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .xls-del-btn:hover { color: var(--red); }
+  .xls-totals-row {
+    display: flex;
+    background: #0d1929;
+    border-top: 2px solid var(--border);
+    padding: 0.5rem 0;
+  }
+  .xls-total-val {
+    color: var(--cyan);
+    font-weight: 700;
+    font-size: 0.85rem;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* VAR CHIPS */
+  .var-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,200,224,0.08);
+    border: 1px solid rgba(0,200,224,0.25);
+    border-radius: 6px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.78rem;
+    color: var(--cyan);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .var-chip small { color: var(--text-muted); font-size: 0.7rem; }
+  .var-chip:hover { background: rgba(0,200,224,0.18); border-color: var(--cyan); }
+
+  /* TPL LIST */
+  .tpl-list-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.55rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .tpl-list-item:hover { border-color: var(--cyan); color: var(--text); }
+  .tpl-list-item.active { border-color: var(--cyan); background: rgba(0,200,224,0.08); color: var(--cyan); font-weight: 500; }
+  .tpl-list-item .tpl-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .flex-row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
 
@@ -596,36 +741,58 @@ O valor da mão de obra inclui os trabalhos previstos durante a visita técnica 
     <!-- TABELAS DE PREÇOS -->
     <div id="panel-tabelas" class="panel">
       <div class="page-title">Tabelas de Preços de Materiais</div>
-      <div class="page-sub">Preços atualizados de materiais de instalação</div>
+      <div class="page-sub">Valores atualizados a 09/10/2024 — edite diretamente nas células</div>
 
-      <div class="flex-row" style="margin-bottom:1rem">
+      <div class="flex-row" style="margin-bottom:1.25rem">
         <input type="file" id="xlsx-upload" accept=".xlsx,.xls" onchange="importXLSX(event)">
         <button class="btn btn-ghost" onclick="document.getElementById('xlsx-upload').click()">📥 Atualizar via Excel</button>
         <button class="btn btn-ghost" onclick="exportarTabelaExcel()">📤 Exportar Excel</button>
-        <button class="btn btn-ghost btn-sm" onclick="switchPanel('add-material')">+ Novo Material</button>
       </div>
 
-      <div class="table-wrap">
-        <div class="cat-header">Tubos de Cobre</div>
-        <table>
-          <thead><tr><th>Produto</th><th>Preço Rolo PVP</th><th>Preço Rolo Custo</th><th>€/m PVP</th><th>€/m Custo</th><th>Ações</th></tr></thead>
-          <tbody id="tbl-cobre"></tbody>
-        </table>
-        <div class="cat-header">Tubos, Cabos e Calhas</div>
-        <table>
-          <thead><tr><th>Produto</th><th>Preço Rolo PVP</th><th>Preço Rolo Custo</th><th>€/m PVP</th><th>€/m Custo</th><th>Ações</th></tr></thead>
-          <tbody id="tbl-cabos"></tbody>
-        </table>
-        <div class="cat-header">Material Exterior e Acessórios</div>
-        <table>
-          <thead><tr><th>Produto</th><th>Preço Unit. PVP</th><th>Preço Unit. Custo</th><th></th><th></th><th>Ações</th></tr></thead>
-          <tbody id="tbl-exterior"></tbody>
-        </table>
-        <div class="cat-header">Mão de Obra</div>
-        <table>
-          <thead><tr><th>Função</th><th>€/hora PVP</th><th>€/hora Custo</th><th></th><th></th><th>Ações</th></tr></thead>
-          <tbody id="tbl-obra"></tbody>
-        </table>
+      <div class="xls-wrap">
+        <div class="xls-title-row">
+          <div class="xls-cell xls-label" style="flex:3">Produto / Descrição</div>
+          <div class="xls-cell xls-col-head">Valor rolo / PVP</div>
+          <div class="xls-cell xls-col-head">Valor rolo / Custo</div>
+          <div class="xls-cell xls-col-head">Valor uni / PVP</div>
+          <div class="xls-cell xls-col-head">Valor uni / Custo</div>
+          <div class="xls-cell xls-col-head">Quantidade</div>
+          <div class="xls-cell xls-col-head">Preço PVP</div>
+          <div class="xls-cell xls-col-head">Preço Custo</div>
+          <div class="xls-cell xls-col-head xls-notes-col">Notas</div>
+          <div class="xls-cell xls-col-head xls-del-col"></div>
+        </div>
+        <div class="xls-cat-row"><span>📐 Tubos de Cobre</span> <button class="xls-add-btn" onclick="addMatRow('cobre')">+ Linha</button></div>
+        <div id="xls-cobre"></div>
+        <div class="xls-cat-row"><span>🔌 Tubos e Cabos</span> <button class="xls-add-btn" onclick="addMatRow('cabos')">+ Linha</button></div>
+        <div id="xls-cabos"></div>
+        <div class="xls-cat-row"><span>🏗️ Material p/ Exterior</span> <button class="xls-add-btn" onclick="addMatRow('exterior')">+ Linha</button></div>
+        <div id="xls-exterior"></div>
+        <div class="xls-cat-row"><span>💧 Bombas de Condensados</span> <button class="xls-add-btn" onclick="addMatRow('bombas')">+ Linha</button></div>
+        <div id="xls-bombas"></div>
+        <div class="xls-cat-row"><span>🧪 Gás e Consumíveis</span> <button class="xls-add-btn" onclick="addMatRow('gas')">+ Linha</button></div>
+        <div id="xls-gas"></div>
+        <div class="xls-cat-row"><span>🔥 Soldaduras</span> <button class="xls-add-btn" onclick="addMatRow('soldaduras')">+ Linha</button></div>
+        <div id="xls-soldaduras"></div>
+        <div class="xls-cat-row"><span>👷 Mão de Obra / Hora</span> <button class="xls-add-btn" onclick="addMatRow('obra')">+ Linha</button></div>
+        <div id="xls-obra"></div>
+        <div class="xls-cat-row"><span>🚗 Deslocações</span> <button class="xls-add-btn" onclick="addMatRow('deslocacoes')">+ Linha</button></div>
+        <div id="xls-deslocacoes"></div>
+        <div class="xls-cat-row"><span>🧹 Limpezas</span> <button class="xls-add-btn" onclick="addMatRow('limpezas')">+ Linha</button></div>
+        <div id="xls-limpezas"></div>
+        <div class="xls-totals-row">
+          <div class="xls-cell" style="flex:3;font-weight:600;font-size:0.8rem">Total materiais s/ bombas, Gás, O₂ e N₂</div>
+          <div class="xls-cell"></div><div class="xls-cell"></div><div class="xls-cell"></div><div class="xls-cell"></div>
+          <div class="xls-cell"></div>
+          <div class="xls-cell xls-total-val" id="xls-total-pvp">€ 0,00</div>
+          <div class="xls-cell xls-total-val" id="xls-total-custo">€ 0,00</div>
+          <div class="xls-cell xls-notes-col"></div>
+          <div class="xls-cell xls-del-col"></div>
+        </div>
+      </div>
+      <div style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-dim);display:flex;gap:1.5rem;flex-wrap:wrap">
+        <span>💡 Clique nas células para editar diretamente</span>
+        <span>📌 Quantidade × Valor uni = Preço calculado automaticamente</span>
       </div>
     </div>
 
@@ -652,44 +819,56 @@ O valor da mão de obra inclui os trabalhos previstos durante a visita técnica 
     <!-- EMAIL TEMPLATES -->
     <div id="panel-email" class="panel">
       <div class="page-title">Templates de Email</div>
-      <div class="page-sub">Mensagens padronizadas para envio de orçamentos</div>
+      <div class="page-sub">Gerencie e crie mensagens padronizadas para envio de orçamentos</div>
 
-      <div class="template-tabs">
-        <button class="tpl-tab active" onclick="setTpl(0, this)">Envio de Orçamento</button>
-        <button class="tpl-tab" onclick="setTpl(1, this)">Follow-up (3 dias)</button>
-        <button class="tpl-tab" onclick="setTpl(2, this)">Follow-up (7 dias)</button>
-        <button class="tpl-tab" onclick="setTpl(3, this)">Confirmação de Trabalho</button>
-        <button class="tpl-tab" onclick="setTpl(4, this)">Agendamento Visita</button>
-      </div>
+      <div style="display:grid;grid-template-columns:260px 1fr;gap:1.5rem;align-items:start">
 
-      <div class="form-card">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Assunto</label>
-            <input type="text" id="email-subject" readonly style="font-weight:500">
+        <!-- LEFT: template list -->
+        <div>
+          <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.6rem">Templates</div>
+          <div id="tpl-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:0.75rem"></div>
+          <button class="btn btn-primary" style="width:100%" onclick="addNewTemplate()">+ Novo Template</button>
+        </div>
+
+        <!-- RIGHT: editor -->
+        <div id="tpl-editor-wrap">
+          <div class="form-card" style="margin-bottom:1rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+              <h3 id="tpl-editor-title">Editar Template</h3>
+              <div class="flex-row" style="gap:6px">
+                <button class="btn btn-ghost btn-sm" onclick="renameTpl()">✏️ Renomear</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteTpl()">🗑️ Eliminar</button>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem">
+              <label>Assunto do Email</label>
+              <input type="text" id="email-subject" placeholder="Assunto...">
+            </div>
+            <div class="form-group" style="margin-bottom:0.75rem">
+              <label>Corpo do Email</label>
+              <div class="email-box" id="email-body" contenteditable="true" style="min-height:260px"></div>
+            </div>
+            <div class="flex-row">
+              <button class="btn btn-primary" onclick="saveTpl()">💾 Guardar</button>
+              <button class="btn btn-ghost" onclick="copyEmail()">📋 Copiar</button>
+              <button class="btn btn-ghost" onclick="openMailto()">✉️ Abrir no Mail</button>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h3 style="margin-bottom:0.75rem">Variáveis Automáticas</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+              <span onclick="insertVar('{CLIENTE}')" class="var-chip">{CLIENTE} <small>nome do cliente</small></span>
+              <span onclick="insertVar('{OR_NUM}')" class="var-chip">{OR_NUM} <small>nº orçamento</small></span>
+              <span onclick="insertVar('{TOTAL}')" class="var-chip">{TOTAL} <small>total c/ IVA</small></span>
+              <span onclick="insertVar('{VALIDADE}')" class="var-chip">{VALIDADE} <small>válido até</small></span>
+              <span onclick="insertVar('{DATA}')" class="var-chip">{DATA} <small>data hoje</small></span>
+              <span onclick="insertVar('{TELEFONE}')" class="var-chip">{TELEFONE} <small>telefone cliente</small></span>
+              <span onclick="insertVar('{EMAIL}')" class="var-chip">{EMAIL} <small>email cliente</small></span>
+            </div>
+            <p style="font-size:0.75rem;color:var(--text-dim);margin-top:0.75rem">Clique numa variável para a inserir no ponto do cursor no corpo do email</p>
           </div>
         </div>
-        <div class="form-group" style="margin-bottom:0.75rem">
-          <label>Corpo do Email</label>
-          <div class="email-box" id="email-body" contenteditable="true"></div>
-        </div>
-        <div class="flex-row">
-          <button class="btn btn-primary" onclick="copyEmail()">📋 Copiar Email</button>
-          <button class="btn btn-ghost" onclick="openMailto()">✉️ Abrir no Mail</button>
-          <button class="btn btn-ghost btn-sm" onclick="saveTpl()">💾 Guardar Alterações</button>
-        </div>
-      </div>
-
-      <div class="form-card">
-        <h3>Variáveis Disponíveis</h3>
-        <p style="font-size:0.8rem;color:var(--text-muted);line-height:1.7">
-          Use estas variáveis nos templates — são substituídas automaticamente ao gerar email para um orçamento:<br><br>
-          <code style="color:var(--cyan)">{CLIENTE}</code> — Nome do cliente &nbsp;|&nbsp;
-          <code style="color:var(--cyan)">{OR_NUM}</code> — Nº do orçamento &nbsp;|&nbsp;
-          <code style="color:var(--cyan)">{TOTAL}</code> — Total com IVA &nbsp;|&nbsp;
-          <code style="color:var(--cyan)">{VALIDADE}</code> — Data de validade &nbsp;|&nbsp;
-          <code style="color:var(--cyan)">{DATA}</code> — Data de hoje
-        </p>
       </div>
     </div>
 
@@ -884,7 +1063,7 @@ function getDefaultProdutos() {
 
 function getDefaultTemplates() {
   return [
-    {
+    { name: 'Envio de Orçamento',
       subject: 'Orçamento Macuti – OR {OR_NUM} | Ar Condicionado',
       body: `Exmo(a). Sr(a). {CLIENTE},
 
@@ -907,7 +1086,7 @@ Rua Irene Isidro, 25 | 2775-205 Parede
 Tlf: 925 710 285
 geral@macuti.pt | www.macuti.pt`
     },
-    {
+    { name: 'Follow-up (3 dias)',
       subject: 'Follow-up – Orçamento OR {OR_NUM} | Macuti',
       body: `Exmo(a). Sr(a). {CLIENTE},
 
@@ -922,7 +1101,7 @@ Aguardamos o seu contacto.
 Com os melhores cumprimentos,
 Macuti – 925 710 285 | geral@macuti.pt`
     },
-    {
+    { name: 'Follow-up (7 dias)',
       subject: 'Último aviso – Orçamento OR {OR_NUM} a expirar | Macuti',
       body: `Exmo(a). Sr(a). {CLIENTE},
 
@@ -936,7 +1115,7 @@ geral@macuti.pt
 Com os melhores cumprimentos,
 Equipa Macuti`
     },
-    {
+    { name: 'Confirmação de Trabalho',
       subject: 'Confirmação de Trabalho – OR {OR_NUM} | Macuti',
       body: `Exmo(a). Sr(a). {CLIENTE},
 
@@ -951,7 +1130,7 @@ Qualquer questão, estamos disponíveis.
 Com os melhores cumprimentos,
 Macuti – 925 710 285`
     },
-    {
+    { name: 'Agendamento Visita Técnica',
       subject: 'Agendamento Visita Técnica | Macuti',
       body: `Exmo(a). Sr(a). {CLIENTE},
 
@@ -993,7 +1172,7 @@ function switchPanel(name) {
   if (name === 'lista') renderLista();
   if (name === 'tabelas') renderTabelas();
   if (name === 'produtos') renderProdutos();
-  if (name === 'email') setTpl(0);
+  if (name === 'email') { renderTplList(); setTpl(currentTpl); }
   if (name === 'orcamento') initOrcamento();
 }
 
@@ -1179,80 +1358,93 @@ function deleteOr(id) {
 }
 
 // ===================== TABELAS =====================
+const CATS = ['cobre','cabos','exterior','bombas','gas','soldaduras','obra','deslocacoes','limpezas'];
+
 function renderTabelas() {
-  const fmtV = v => v ? '€' + parseFloat(v).toFixed(2) : '—';
-  
-  document.getElementById('tbl-cobre').innerHTML = materiais.cobre.map((m, i) => `
-    <tr>
-      <td>${m.nome}</td>
-      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.pvpRolo}" onchange="updateMat('cobre',${i},'pvpRolo',this.value)"></td>
-      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.custoRolo}" onchange="updateMat('cobre',${i},'custoRolo',this.value)"></td>
-      <td><strong>${fmtV(m.pvpM)}</strong></td>
-      <td style="color:var(--text-muted)">${fmtV(m.custoM)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteMat('cobre',${i})">✕</button></td>
-    </tr>
-  `).join('');
-
-  document.getElementById('tbl-cabos').innerHTML = materiais.cabos.map((m, i) => `
-    <tr>
-      <td>${m.nome}</td>
-      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.pvpRolo}" onchange="updateMat('cabos',${i},'pvpRolo',this.value)"></td>
-      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.custoRolo}" onchange="updateMat('cabos',${i},'custoRolo',this.value)"></td>
-      <td><strong>${fmtV(m.pvpM)}</strong></td>
-      <td style="color:var(--text-muted)">${fmtV(m.custoM)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteMat('cabos',${i})">✕</button></td>
-    </tr>
-  `).join('');
-
-  document.getElementById('tbl-exterior').innerHTML = materiais.exterior.map((m, i) => `
-    <tr>
-      <td>${m.nome}</td>
-      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.pvpUn}" onchange="updateMat('exterior',${i},'pvpUn',this.value)"></td>
-      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.custoUn}" onchange="updateMat('exterior',${i},'custoUn',this.value)"></td>
-      <td></td><td></td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteMat('exterior',${i})">✕</button></td>
-    </tr>
-  `).join('');
-
-  document.getElementById('tbl-obra').innerHTML = materiais.obra.map((m, i) => `
-    <tr>
-      <td>${m.nome}</td>
-      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.pvpH}" onchange="updateMat('obra',${i},'pvpH',this.value)"></td>
-      <td><input style="background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;width:90px;font-size:0.8rem" value="${m.custoH}" onchange="updateMat('obra',${i},'custoH',this.value)"></td>
-      <td></td><td></td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteMat('obra',${i})">✕</button></td>
-    </tr>
-  `).join('');
+  CATS.forEach(cat => renderCat(cat));
+  updateXlsTotals();
 }
 
-function updateMat(cat, idx, field, val) {
-  materiais[cat][idx][field] = parseFloat(val) || 0;
-  // Auto-calc €/m from rolo price
-  if (cat === 'cobre' || cat === 'cabos') {
-    const m = materiais[cat][idx];
-    const nome = m.nome;
-    const roloSize = nome.includes('50m') ? 50 : nome.includes('30m') ? 30 : nome.includes('100m') ? 100 : 25;
-    if (field === 'pvpRolo') m.pvpM = parseFloat((m.pvpRolo / roloSize).toFixed(4));
-    if (field === 'custoRolo') m.custoM = parseFloat((m.custoRolo / roloSize).toFixed(4));
+function renderCat(cat) {
+  const el = document.getElementById('xls-' + cat);
+  if (!el) return;
+  if (!materiais[cat]) materiais[cat] = [];
+  el.innerHTML = materiais[cat].map((m, i) => {
+    const pricePVP = (m.qty || 0) * (m.pvpUni || 0);
+    const priceCusto = (m.qty || 0) * (m.custoUni || 0);
+    const showRolo = cat === 'cobre' || cat === 'cabos';
+    return `<div class="xls-row">
+      <div class="xls-cell" style="flex:3"><input class="xls-inp left" value="${esc(m.nome)}" onchange="setMat('${cat}',${i},'nome',this.value)" placeholder="Nome do produto"></div>
+      <div class="xls-cell"><input class="xls-inp ${!showRolo?'zero':''}" type="number" value="${showRolo ? (m.pvpRolo||0) : ''}" ${!showRolo?'placeholder="—" readonly':''} onchange="setMat('${cat}',${i},'pvpRolo',this.value)"></div>
+      <div class="xls-cell"><input class="xls-inp ${!showRolo?'zero':''}" type="number" value="${showRolo ? (m.custoRolo||0) : ''}" ${!showRolo?'placeholder="—" readonly':''} onchange="setMat('${cat}',${i},'custoRolo',this.value)"></div>
+      <div class="xls-cell"><input class="xls-inp" type="number" value="${m.pvpUni||0}" onchange="setMat('${cat}',${i},'pvpUni',this.value)"></div>
+      <div class="xls-cell"><input class="xls-inp" type="number" value="${m.custoUni||0}" onchange="setMat('${cat}',${i},'custoUni',this.value)"></div>
+      <div class="xls-cell"><input class="xls-inp" type="number" value="${m.qty||0}" onchange="setMat('${cat}',${i},'qty',this.value)"></div>
+      <div class="xls-cell"><input class="xls-inp calc-val" type="number" value="${pricePVP.toFixed(2)}" readonly></div>
+      <div class="xls-cell"><input class="xls-inp calc-val" type="number" value="${priceCusto.toFixed(2)}" readonly style="color:var(--text-muted)"></div>
+      <div class="xls-cell xls-notes-col"><input class="xls-inp left" value="${esc(m.notas||'')}" onchange="setMat('${cat}',${i},'notas',this.value)" placeholder="Notas..."></div>
+      <div class="xls-cell xls-del-col"><button class="xls-del-btn" onclick="delMat('${cat}',${i})">✕</button></div>
+    </div>`;
+  }).join('');
+}
+
+function esc(s) { return String(s||'').replace(/"/g,'&quot;'); }
+
+function setMat(cat, idx, field, val) {
+  if (!materiais[cat]) return;
+  const m = materiais[cat][idx];
+  if (field === 'nome' || field === 'notas') m[field] = val;
+  else m[field] = parseFloat(val) || 0;
+  // Auto-recalc pvpUni from rolo for copper/cable
+  if ((cat==='cobre'||cat==='cabos') && (field==='pvpRolo'||field==='custoRolo')) {
+    const nome = m.nome || '';
+    const sz = nome.includes('50m')?50:nome.includes('100m')?100:nome.includes('30m')?30:25;
+    if (field==='pvpRolo') m.pvpUni = parseFloat((m.pvpRolo/sz).toFixed(4));
+    if (field==='custoRolo') m.custoUni = parseFloat((m.custoRolo/sz).toFixed(4));
   }
   save();
-  renderTabelas();
-  toast('Preço atualizado');
+  renderCat(cat);
+  updateXlsTotals();
 }
 
-function deleteMat(cat, idx) {
+function delMat(cat, idx) {
   materiais[cat].splice(idx, 1);
   save();
-  renderTabelas();
+  renderCat(cat);
+  updateXlsTotals();
+}
+
+function addMatRow(cat) {
+  if (!materiais[cat]) materiais[cat] = [];
+  materiais[cat].push({ nome: '', pvpRolo: 0, custoRolo: 0, pvpUni: 0, custoUni: 0, qty: 0, notas: '' });
+  save();
+  renderCat(cat);
+}
+
+function updateXlsTotals() {
+  const excludeFromTotal = ['bombas','gas','deslocacoes'];
+  let totalPVP = 0, totalCusto = 0;
+  CATS.forEach(cat => {
+    if (excludeFromTotal.includes(cat)) return;
+    (materiais[cat]||[]).forEach(m => {
+      totalPVP += (m.qty||0) * (m.pvpUni||0);
+      totalCusto += (m.qty||0) * (m.custoUni||0);
+    });
+  });
+  document.getElementById('xls-total-pvp').textContent = '€ ' + totalPVP.toFixed(2).replace('.',',');
+  document.getElementById('xls-total-custo').textContent = '€ ' + totalCusto.toFixed(2).replace('.',',');
 }
 
 function exportarTabelaExcel() {
   const wb = XLSX.utils.book_new();
-  const rows = [['Categoria','Produto','PVP Rolo/Un','Custo Rolo/Un','PVP/m ou Un','Custo/m ou Un']];
-  materiais.cobre.forEach(m => rows.push(['Tubos Cobre', m.nome, m.pvpRolo, m.custoRolo, m.pvpM, m.custoM]));
-  materiais.cabos.forEach(m => rows.push(['Cabos/Tubos', m.nome, m.pvpRolo, m.custoRolo, m.pvpM, m.custoM]));
-  materiais.exterior.forEach(m => rows.push(['Exterior', m.nome, '', '', m.pvpUn, m.custoUn]));
-  materiais.obra.forEach(m => rows.push(['Mão de Obra', m.nome, '', '', m.pvpH, m.custoH]));
+  const rows = [['Categoria','Produto','PVP Rolo','Custo Rolo','PVP Unit.','Custo Unit.','Qtd.','Preço PVP','Preço Custo','Notas']];
+  const catNames = {cobre:'Tubos Cobre',cabos:'Tubos e Cabos',exterior:'Material Exterior',bombas:'Bombas',gas:'Gás',soldaduras:'Soldaduras',obra:'Mão de Obra',deslocacoes:'Deslocações',limpezas:'Limpezas'};
+  CATS.forEach(cat => {
+    (materiais[cat]||[]).forEach(m => rows.push([
+      catNames[cat]||cat, m.nome, m.pvpRolo||'', m.custoRolo||'', m.pvpUni||0, m.custoUni||0,
+      m.qty||0, (m.qty||0)*(m.pvpUni||0), (m.qty||0)*(m.custoUni||0), m.notas||''
+    ]));
+  });
   const ws = XLSX.utils.aoa_to_sheet(rows);
   XLSX.utils.book_append_sheet(wb, ws, 'Tabela Preços');
   XLSX.writeFile(wb, 'Macuti_Tabela_Precos.xlsx');
@@ -1430,14 +1622,23 @@ function addFromPicker(idx) {
 }
 
 // ===================== EMAIL =====================
-function setTpl(idx, el) {
+function renderTplList() {
+  const list = document.getElementById('tpl-list');
+  if (!list) return;
+  list.innerHTML = templates.map((t, i) => `
+    <div class="tpl-list-item ${i===currentTpl?'active':''}" onclick="setTpl(${i})">
+      <span class="tpl-name">✉️ ${t.name || ('Template ' + (i+1))}</span>
+    </div>
+  `).join('');
+}
+
+function setTpl(idx) {
   currentTpl = idx;
-  document.querySelectorAll('.tpl-tab').forEach(t => t.classList.remove('active'));
-  if (el) el.classList.add('active');
-  else document.querySelectorAll('.tpl-tab')[idx]?.classList.add('active');
+  renderTplList();
   const tpl = templates[idx];
-  document.getElementById('email-subject').value = tpl.subject;
-  document.getElementById('email-body').textContent = tpl.body;
+  document.getElementById('tpl-editor-title').textContent = tpl.name || ('Template ' + (idx+1));
+  document.getElementById('email-subject').value = tpl.subject || '';
+  document.getElementById('email-body').textContent = tpl.body || '';
 }
 
 function saveTpl() {
@@ -1445,6 +1646,56 @@ function saveTpl() {
   templates[currentTpl].body = document.getElementById('email-body').textContent;
   save();
   toast('✅ Template guardado');
+}
+
+function addNewTemplate() {
+  const name = prompt('Nome do novo template:', 'Novo Template');
+  if (!name) return;
+  templates.push({
+    name,
+    subject: 'Assunto – Macuti',
+    body: `Exmo(a). Sr(a). {CLIENTE},\n\n[Escreva aqui o conteúdo do email]\n\nCom os melhores cumprimentos,\nMacuti – 925 710 285\ngeral@macuti.pt`
+  });
+  currentTpl = templates.length - 1;
+  save();
+  renderTplList();
+  setTpl(currentTpl);
+  toast('✅ Novo template criado');
+}
+
+function renameTpl() {
+  const name = prompt('Novo nome:', templates[currentTpl].name || '');
+  if (!name) return;
+  templates[currentTpl].name = name;
+  save();
+  renderTplList();
+  document.getElementById('tpl-editor-title').textContent = name;
+  toast('✅ Template renomeado');
+}
+
+function deleteTpl() {
+  if (templates.length <= 1) { toast('⚠️ Tem de manter pelo menos um template'); return; }
+  if (!confirm('Eliminar template "' + (templates[currentTpl].name||'Template') + '"?')) return;
+  templates.splice(currentTpl, 1);
+  currentTpl = Math.max(0, currentTpl - 1);
+  save();
+  renderTplList();
+  setTpl(currentTpl);
+  toast('🗑️ Template eliminado');
+}
+
+function insertVar(v) {
+  const el = document.getElementById('email-body');
+  el.focus();
+  const sel = window.getSelection();
+  if (sel.rangeCount) {
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(document.createTextNode(v));
+    range.collapse(false);
+  } else {
+    el.textContent += v;
+  }
 }
 
 function copyEmail() {
@@ -1638,7 +1889,33 @@ function toast(msg) {
 // ===================== INIT =====================
 renderDashboard();
 initOrcamento();
+// Migrate old templates that have no name
+templates = templates.map((t,i) => ({ name: t.name || ('Template '+(i+1)), ...t }));
+renderTplList();
 setTpl(0);
+// Migrate old materiais that lack new categories
+['bombas','gas','soldaduras','deslocacoes','limpezas'].forEach(cat => {
+  if (!materiais[cat]) materiais[cat] = getDefaultMateriais()[cat];
+});
+// Migrate old materiais rows that lack pvpUni field
+['cobre','cabos'].forEach(cat => {
+  (materiais[cat]||[]).forEach(m => {
+    if (m.pvpUni == null) { m.pvpUni = m.pvpM || 0; m.custoUni = m.custoM || 0; }
+    if (m.qty == null) m.qty = 0;
+    if (m.notas == null) m.notas = '';
+  });
+});
+['exterior','obra'].forEach(cat => {
+  (materiais[cat]||[]).forEach(m => {
+    if (m.pvpUni == null) m.pvpUni = m.pvpUn || m.pvpH || 0;
+    if (m.custoUni == null) m.custoUni = m.custoUn || m.custoH || 0;
+    if (m.pvpRolo == null) m.pvpRolo = 0;
+    if (m.custoRolo == null) m.custoRolo = 0;
+    if (m.qty == null) m.qty = 0;
+    if (m.notas == null) m.notas = '';
+  });
+});
+save();
 </script>
 </body>
 </html>
